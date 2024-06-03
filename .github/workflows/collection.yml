@@ -13,12 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup and Run Tests
-        uses: grabblicious/postman-collection@v2
-        with:
-          collection: newmanCollection.json
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Tests
+        run: newman run newmanCollection.json
 
       - uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: output.log
+          path: output.log  # Assuming output.log is generated during tests
