@@ -1,4 +1,4 @@
-name: Postman Tests with Telegram Notification
+name: Postman Tests
 
 on:
   push:
@@ -9,17 +9,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # ... your existing test execution steps ...
+      - name: Install Newman
+        run: npm install -g newman
 
-      - name: Upload Test Results Artifact
-        uses: actions/upload-artifact@v4
+      - name: Run Postman Tests and Capture Output
+        run: |
+          newman run newmanCollection.json &> output.log
+
+      - uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: output.log  # Replace with your test results file path
-
+          path: output.log
       - name: Download Test Results Artifact
         uses: actions/download-artifact@v4
         with:
