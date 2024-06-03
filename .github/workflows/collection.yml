@@ -9,27 +9,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Newman (if not already installed)
-        run: npm install -g newman  # Replace with your installation command if needed
+      - name: Install Newman
+        run: npm install -g newman
 
       - name: Run Postman Tests and Capture Output
-        run: |
-          newman run newmanCollection.json &> output.log
+        run: newman run newmanCollection.json &> output.log
 
-      - name: Send Postman Test Results to Telegram using Telegram CLI (Optional)
-        # Requires pre-installation and configuration of 'telegram-cli'
-        run: |
-          # Access secrets directly within the run command block
-          telegram-cli -k ${{ secrets.BOT_TOKEN }} \
-            sendDocument ${{ github.workspace }}/output.log \
-            --chat_id ${{ secrets.CHAT_ID }} \
-            --caption "Postman Test Results: ${{ job.status }}"
-
-      - name: Upload Test Results Artifact (Optional - for backup)
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: test-results  # Optional - upload for backup purposes
+          name: test-results
           path: output.log
+
+      - name: Send results to Telegram Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          curl -F "chat_id=${CHAT_ID}" -F document=@output.log https://api.telegram.org/bot${BOT_TOKEN}/sendDocument
