@@ -9,48 +9,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Newman
-        run: npm install -g newman
+      - name: Install Newman (if not already installed)
+        run: npm install -g newman  # Replace with your installation command if needed
 
       - name: Run Postman Tests and Capture Output
         run: |
           newman run newmanCollection.json &> output.log
 
-      - uses: actions/upload-artifact@v4
+      - name: Send Postman Test Results to Telegram using Telegram CLI (Optional)
+        # Requires pre-installation and configuration of 'telegram-cli'
+        run: |
+          # Access secrets directly within the run command block
+          telegram-cli -k ${{ secrets.BOT_TOKEN }} \
+            sendDocument ${{ github.workspace }}/output.log \
+            --chat_id ${{ secrets.CHAT_ID }} \
+            --caption "Postman Test Results: ${{ job.status }}"
+
+      - name: Upload Test Results Artifact (Optional - for backup)
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results  # Optional - upload for backup purposes
           path: output.log
-      - name: Download Test Results Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-
-      - name: Process and Format Results
-        run: |
-          # Download the test results (assuming downloaded to 'output.log')
-          TEST_RESULTS=$(cat output.log)  
-
-          # Extract total tests, failures, and errors (adjust patterns if needed)
-          TOTAL_TESTS=$(echo "$TEST_RESULTS" | grep 'Tests run:' | awk '{print $2}')
-          FAILURES=$(echo "$TEST_RESULTS" | grep 'Failures:' | awk '{print $2}')
-          ERRORS=$(echo "$TEST_RESULTS" | grep 'Errors:' | awk '{print $2}')
-
-          # Extract test status (assuming success if no failures or errors)
-          TEST_STATUS="Failed"
-          if [[ "$FAILURES" == "0" && "$ERRORS" == "0" ]]; then
-            TEST_STATUS="Passed"
-          fi
-
-          curl -X POST https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.CHAT_ID }} \
-            -d text="Test Results: $TEST_STATUS \n**Total:** $TOTAL_TESTS, **Failed:** $FAILURES, **Errors:** $ERRORS \n**See full log for details:** [output.log](https://github.com/<username>/<repository>/actions/runs/<run_id>/logs)"
-
-      - name: Send Test Results to Telegram
-        run: |
-          curl -X POST https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.CHAT_ID }} \
-            -d text="Test Results: $TEST_STATUS \n**Passed:** $PASSED_TESTS, **Failed:** $FAILED_TESTS \n**See full log for details:** [output.log](https://github.com/<username>/<repository>/actions/runs/<run_id>/logs)"
