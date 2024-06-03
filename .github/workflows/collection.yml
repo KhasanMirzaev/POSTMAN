@@ -1,4 +1,4 @@
-name: Postman Tests
+name: Postman Tests with Telegram Notification
 
 on:
   push:
@@ -24,3 +24,10 @@ jobs:
         with:
           name: test-results
           path: output.log
+
+      - name: Send Test Results to Telegram
+        run: |
+          curl -X POST https://api.telegram.org/bot${{ secrets.7341585544:AAEwPxTXW6JjVsixhrUa7c0RY06FoDmq_6c }}/sendMessage \
+            -d chat_id=${{ secrets.7341585544 }} \
+            -d text="Test Results: ${{ job.status }} \n**See output log for details:** [output.log](https://github.com/khasan/postman/actions/runs/850690a2682750487f893ac9fb1b1b359af7ab87/logs)"
+          # Remove the leading '-' (dash) before 'run'
