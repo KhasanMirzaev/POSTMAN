@@ -20,7 +20,7 @@ jobs:
         run: npm install -g newman
 
       - name: Run Postman Tests
-        run: newman run collection.json
+        run: newman run newmanCollection.json
         
       - name: Upload log file
         uses: actions/upload-artifact@v2
