@@ -21,3 +21,9 @@ jobs:
 
       - name: Run Postman Tests
         run: newman run collection.json
+        
+      - name: Upload log file
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: output.log
