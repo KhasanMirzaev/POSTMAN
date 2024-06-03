@@ -16,10 +16,11 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Run Postman Tests
-        run: newman run newmanCollection.json
+      - name: Run Postman Tests and Capture Output
+        run: |
+          newman run newmanCollection.json &> output.log
 
       - uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: output.log  # Assuming output.log is generated during tests
+          path: output.log
